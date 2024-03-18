@@ -1,0 +1,221 @@
+﻿Program.Sub.ScreenSU.Start
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+
+'Hook 49710 SFDC2-Populate-Hook (GUI)
+'Hook 49760 SFDC2-Script 1 Hook (GUI)
+'Hook 49761 SFDC2-Script 2 Hook (GUI)
+'Hook 49762 SFDC2-Script 3 Hook (GUI)
+'Mod RRC 02/09/21
+
+V.Local.sScriptLabel.Declare
+
+F.Intrinsic.Control.If(V.Caller.Hook,=,49710)
+	V.Local.sScriptLabel.Set(V.Passed.MainFormView-WindowsUIButtonPanel-1)
+	F.Intrinsic.String.Replace(V.Local.sScriptLabel,"Script 1","WO Part",V.Local.sScriptLabel)
+	F.Intrinsic.String.Replace(V.Local.sScriptLabel,"Script 2","Seq List",V.Local.sScriptLabel)
+	F.Intrinsic.String.Replace(V.Local.sScriptLabel,"Script 3","Seq Detail",V.Local.sScriptLabel)
+	V.Passed.MainFormView-WindowsUIButtonPanel-1.Set(V.Local.sScriptLabel)
+F.Intrinsic.Control.ElseIf(V.Caller.Hook,=,49760)
+	F.Intrinsic.Control.CallSub(Subwolbl)
+F.Intrinsic.Control.ElseIf(V.Caller.Hook,=,49761)
+	F.Intrinsic.Control.CallSub(Subwomatlbl)
+F.Intrinsic.Control.ElseIf(V.Caller.Hook,=,49762)
+	F.Intrinsic.Control.CallSub(Subwomatseqlbl)
+F.Intrinsic.Control.EndIf
+
+Program.Sub.Main.End
+
+Program.Sub.subWOLbl.Start
+F.Intrinsic.Control.SetErrorHandler("subWOLbl_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+V.Local.sName.Declare
+V.Local.sValues.Declare
+V.Local.iRep.Declare(Long)
+V.Local.sRepName.Declare
+V.Local.sRepName.Set("WorkOrderLabel.rpt")
+V.Local.sJob.Declare
+V.Local.sSuffix.Declare
+V.Local.sJobSuffix.Declare
+V.Local.iRows.Declare
+V.Local.sSelected.Declare
+V.Local.iC.Declare
+V.Local.sTemp.Declare
+
+
+F.Intrinsic.BDF.Load("Jobs","MainFormView-gridViewOperations-bdf")
+'how many rows of data in BDF?
+F.Intrinsic.BDF.ReadRowCount("Jobs",V.Local.iRows)
+'get last row number
+F.Intrinsic.Math.Sub(V.Local.iRows,1,V.Local.iRows)
+'loop through each row
+
+F.Intrinsic.Control.For(V.Local.iC,0,V.Local.iRows,1)
+	F.Intrinsic.BDF.TextMatrix("Jobs",0,V.Local.iC,V.Local.sSelected)
+	F.Intrinsic.Control.If(V.Local.sSelected,=,"True")
+		F.Intrinsic.BDF.TextMatrix("Jobs",2,V.Local.iC,V.Local.sJobSuffix)
+		F.Intrinsic.String.Split(V.Local.sJobSuffix,"-",V.Local.sTemp)
+		V.Local.sJob.Set(V.Local.sTemp(0))
+		V.Local.sSuffix.Set(V.Local.sTemp(1))
+		
+		F.Intrinsic.Control.If(V.Local.sJob,<>,"")
+			F.Global.BI.GetIDFromName(V.Local.sRepName,V.Local.iRep)
+			F.Intrinsic.Control.If(V.Local.iRep,>,0)
+				F.Intrinsic.String.Split("JOB*!*SUFFIX","*!*",V.Local.sName)
+				F.Intrinsic.String.Build("{0}*!*{1}",V.Local.sJob,V.Local.sSuffix,V.Local.sValues)
+				F.Intrinsic.String.Split(V.Local.sValues,"*!*",V.Local.sValues)
+				F.Global.BI.PrintReport(V.Local.iRep,0,V.Local.sName,V.Local.sValues,False)
+			F.Intrinsic.Control.Else
+				F.Intrinsic.UI.Msgbox("Neet to setup the WorkOrderLabel.rpt report ","Report Error")
+			F.Intrinsic.Control.EndIf
+		F.Intrinsic.Control.EndIf		
+	F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.Next(V.Local.iC)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("subWOLbl_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GAB_6257_Gui_WOLbl.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.Debug.SetLA(V.Local.sError)
+Function.Intrinsic.Control.EndIf
+
+Program.Sub.subWOLbl.End
+
+Program.Sub.subWOMatLbl.Start
+F.Intrinsic.Control.SetErrorHandler("subWOMatLbl_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+V.Local.sName.Declare
+V.Local.sValues.Declare
+V.Local.iRep.Declare(Long)
+V.Local.sRepName.Declare
+V.Local.sRepName.Set("WorkOrderLabelMat.rpt")
+V.Local.sJob.Declare
+V.Local.sSuffix.Declare
+V.Local.sJobSuffix.Declare
+V.Local.iRows.Declare
+V.Local.sSelected.Declare
+V.Local.iC.Declare
+V.Local.sTemp.Declare
+
+F.Intrinsic.BDF.Load("Jobs","MainFormView-gridViewOperations-bdf")
+'how many rows of data in BDF?
+F.Intrinsic.BDF.ReadRowCount("Jobs",V.Local.iRows)
+'get last row number
+F.Intrinsic.Math.Sub(V.Local.iRows,1,V.Local.iRows)
+'loop through each row
+
+F.Intrinsic.Control.For(V.Local.iC,0,V.Local.iRows,1)
+	F.Intrinsic.BDF.TextMatrix("Jobs",0,V.Local.iC,V.Local.sSelected)
+	F.Intrinsic.Control.If(V.Local.sSelected,=,"True")
+		F.Intrinsic.BDF.TextMatrix("Jobs",2,V.Local.iC,V.Local.sJobSuffix)
+		F.Intrinsic.String.Split(V.Local.sJobSuffix,"-",V.Local.sTemp)
+		V.Local.sJob.Set(V.Local.sTemp(0))
+		V.Local.sSuffix.Set(V.Local.sTemp(1))
+		
+		F.Intrinsic.Control.If(V.Local.sJob,<>,"")
+			F.Global.BI.GetIDFromName(V.Local.sRepName,V.Local.iRep)
+			F.Intrinsic.Control.If(V.Local.iRep,>,0)
+				F.Intrinsic.String.Split("JOB*!*SUFFIX","*!*",V.Local.sName)
+				F.Intrinsic.String.Build("{0}*!*{1}",V.Local.sJob,V.Local.sSuffix,V.Local.sValues)
+				F.Intrinsic.String.Split(V.Local.sValues,"*!*",V.Local.sValues)
+				F.Global.BI.PrintReport(V.Local.iRep,0,V.Local.sName,V.Local.sValues,False)
+			F.Intrinsic.Control.Else
+				F.Intrinsic.UI.Msgbox("Neet to setup the WorkOrderLabelMat.rpt report ","Report Error")
+			F.Intrinsic.Control.EndIf
+		F.Intrinsic.Control.EndIf		
+	F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.Next(V.Local.iC)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("subWOMatLbl_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GAB_6257_Gui_WOLbl.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.Debug.SetLA(V.Local.sError)
+Function.Intrinsic.Control.EndIf
+
+Program.Sub.subWOMatLbl.End
+
+Program.Sub.subWOMatSeqLbl.Start
+F.Intrinsic.Control.SetErrorHandler("subWOMatSeqLbl_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+V.Local.sName.Declare
+V.Local.sValues.Declare
+V.Local.iRep.Declare(Long)
+V.Local.sRepName.Declare
+V.Local.sRepName.Set("WorkOrderLabelMat2.rpt")
+V.Local.sJob.Declare
+V.Local.sSuffix.Declare
+V.Local.sSeq.Declare
+V.Local.sJobSuffix.Declare
+V.Local.iRows.Declare
+V.Local.sSelected.Declare
+V.Local.iC.Declare
+V.Local.sTemp.Declare
+
+F.Intrinsic.BDF.Load("Jobs","MainFormView-gridViewOperations-bdf")
+'how many rows of data in BDF?
+F.Intrinsic.BDF.ReadRowCount("Jobs",V.Local.iRows)
+'get last row number
+F.Intrinsic.Math.Sub(V.Local.iRows,1,V.Local.iRows)
+'loop through each row
+
+F.Intrinsic.Control.For(V.Local.iC,0,V.Local.iRows,1)
+	F.Intrinsic.BDF.TextMatrix("Jobs",0,V.Local.iC,V.Local.sSelected)
+	F.Intrinsic.Control.If(V.Local.sSelected,=,"True")
+		F.Intrinsic.BDF.TextMatrix("Jobs",2,V.Local.iC,V.Local.sJobSuffix)
+		F.Intrinsic.String.Split(V.Local.sJobSuffix,"-",V.Local.sTemp)
+		F.Intrinsic.BDF.TextMatrix("Jobs",3,V.Local.iC,V.Local.sSeq)
+		V.Local.sJob.Set(V.Local.sTemp(0))
+		V.Local.sSuffix.Set(V.Local.sTemp(1))
+		
+		F.Intrinsic.Control.If(V.Local.sJob,<>,"")
+			F.Global.BI.GetIDFromName(V.Local.sRepName,V.Local.iRep)
+			F.Intrinsic.Control.If(V.Local.iRep,>,0)
+				F.Intrinsic.String.Split("JOB*!*SUFFIX*!*SEQ","*!*",V.Local.sName)
+				F.Intrinsic.String.Build("{0}*!*{1}*!*{2}",V.Local.sJob,V.Local.sSuffix,V.Local.sSeq,V.Local.sValues)
+				F.Intrinsic.String.Split(V.Local.sValues,"*!*",V.Local.sValues)
+				F.Global.BI.PrintReport(V.Local.iRep,0,V.Local.sName,V.Local.sValues,False)
+			F.Intrinsic.Control.Else
+				F.Intrinsic.UI.Msgbox("Neet to setup the WorkOrderLabelMat2.rpt report ","Report Error")
+			F.Intrinsic.Control.EndIf
+		F.Intrinsic.Control.EndIf		
+	F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.Next(V.Local.iC)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("subWOMatSeqLbl_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GAB_6257_Gui_WOLbl.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.Debug.SetLA(V.Local.sError)
+Function.Intrinsic.Control.EndIf
+
+Program.Sub.subWOMatSeqLbl.End
+
+Program.Sub.Comments.Start
+${$0$}$GAB_Gui_WOLbl$}$RRC$}$10/9/2014
+${$1$}$$}$$}$4$}$15832$}$OLS002-PB-SCRIPT-1-HOOK (On-line GUI)$}$10/9/2014 9:31:01 AM$}$(Program: OLG002; Screen: OLS002)
+${$1$}$$}$$}$3$}$15790$}$OLS002-POPULATE-HOOK (On-line GUI)$}$10/9/2014 9:30:47 AM$}$(Program: OLG002; Screen: OLS002)
+${$1$}$$}$$}$2$}$49761$}$OLS001-PB-SCRIPT-2-HOOK (On-line GUI)$}$10/9/2014 9:30:38 AM$}$(Program: OLG002; Screen: OLS001)
+${$1$}$$}$$}$1$}$49760$}$OLS001-PB-SCRIPT-1-HOOK (On-line GUI)$}$10/9/2014 9:30:26 AM$}$(Program: OLG002; Screen: OLS001)
+${$1$}$$}$$}$0$}$49710$}$OLS001-POPULATE-HOOK (On-line GUI)$}$10/9/2014 9:29:51 AM$}$(Program: OLG002; Screen: OLS001)
+${$5$}$2.0.0.0$}$2
+${$6$}$rrodriguez$}$20210209153802962$}$YnvOFTUOxTrnxbSzMvfBmnrP7dtKqN6ZKEdpzIv886qCf8RqBzjuTHVBzqZeuzTaXpLPA56Cv6cCl+OQjpzASg==
+Program.Sub.Comments.End
+
